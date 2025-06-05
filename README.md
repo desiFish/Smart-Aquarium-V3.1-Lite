@@ -15,6 +15,27 @@
 
 An advanced, ESP8266-based interactive aquarium control system with a modern web interface for managing multiple relays, timers, and schedules.
 
+## 📸 Gallery
+
+<div align="center">
+<img src="src/index.png" alt="Main Dashboard" width="600"/>
+<p><em>Main Dashboard - Desktop View: Control panel showing relay states and operation modes</em></p>
+
+<img src="src/settings.png" alt="Settings Interface" width="600"/>
+<p><em>Settings Page - Desktop View: Configuration interface for relay names and system settings</em></p>
+
+<div style="display: flex; justify-content: center; gap: 20px;">
+  <div>
+    <img src="src/index-phone.png" alt="Mobile Dashboard" width="250"/>
+    <p><em>Main Dashboard - Mobile View</em></p>
+  </div>
+  <div>
+    <img src="src/settings-phone.png" alt="Mobile Settings" width="250"/>
+    <p><em>Settings Page - Mobile View</em></p>
+  </div>
+</div>
+</div>
+
 ## 🌟 Features
 
 - **🎛️ Multiple Control Modes**
@@ -189,16 +210,6 @@ The system provides a modern, fully responsive web interface optimized for both 
 <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
     <div style="width: 400px; text-align: center;"><em>Main control interface with relay status and controls</em></div>
     <div style="width: 400px; text-align: center;"><em>Settings panel for relay name configuration</em></div>
-</div>
-
-### Mobile View
-<div style="display: flex; justify-content: center; gap: 20px;">
-    <img src="src/index-phone.png" alt="Mobile Dashboard" width="250"/>
-    <img src="src/settings-phone.png" alt="Mobile Settings" width="250"/>
-</div>
-<div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
-    <div style="width: 250px; text-align: center;"><em>Mobile-optimized dashboard view</em></div>
-    <div style="width: 250px; text-align: center;"><em>Touch-friendly settings interface</em></div>
 </div>
 
 ## 🔌 API Endpoints
