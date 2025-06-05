@@ -200,18 +200,6 @@ The system provides a modern, fully responsive web interface optimized for both 
   - Responsive Time Controls
   - Accessible System Information
 
-## 📸 Gallery
-
-### Desktop View
-<div style="display: flex; justify-content: center; gap: 20px;">
-    <img src="src/index.png" alt="Main Dashboard" width="400"/>
-    <img src="src/settings.png" alt="Settings Interface" width="400"/>
-</div>
-<div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
-    <div style="width: 400px; text-align: center;"><em>Main control interface with relay status and controls</em></div>
-    <div style="width: 400px; text-align: center;"><em>Settings panel for relay name configuration</em></div>
-</div>
-
 ## 🔌 API Endpoints
 
 The system exposes several RESTful API endpoints:
