@@ -186,11 +186,19 @@ The system provides a modern, fully responsive web interface optimized for both 
     <img src="src/index.png" alt="Main Dashboard" width="400"/>
     <img src="src/settings.png" alt="Settings Interface" width="400"/>
 </div>
+<div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
+    <div style="width: 400px; text-align: center;"><em>Main control interface with relay status and controls</em></div>
+    <div style="width: 400px; text-align: center;"><em>Settings panel for relay name configuration</em></div>
+</div>
 
 ### Mobile View
 <div style="display: flex; justify-content: center; gap: 20px;">
     <img src="src/index-phone.png" alt="Mobile Dashboard" width="250"/>
     <img src="src/settings-phone.png" alt="Mobile Settings" width="250"/>
+</div>
+<div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
+    <div style="width: 250px; text-align: center;"><em>Mobile-optimized dashboard view</em></div>
+    <div style="width: 250px; text-align: center;"><em>Touch-friendly settings interface</em></div>
 </div>
 
 ## 🔌 API Endpoints
@@ -217,6 +225,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📜 License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+Key points of GPL v3:
+- ✅ Freedom to use, study, share, and modify the software
+- ⚠️ Modified versions must also be open source under GPL v3
+- 📝 Changes must be documented and dated
+- ⚖️ No warranty provided; use at your own risk
+- 🔒 Cannot be used in proprietary/closed source software
+- 📦 Include original copyright and license notices
+
+For complete license terms, see the [full GPL v3 text](https://www.gnu.org/licenses/gpl-3.0.txt).
 
 ## 🙏 Acknowledgments
 
