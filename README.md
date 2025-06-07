@@ -11,6 +11,7 @@
 [![Platform: ESP8266](https://img.shields.io/badge/Platform-ESP8266-orange.svg)](https://www.espressif.com/en/products/socs/esp8266)
 [![Framework: Arduino](https://img.shields.io/badge/Framework-Arduino-00979D.svg)](https://www.arduino.cc/)
 [![Web: Responsive](https://img.shields.io/badge/Web-Responsive-purple.svg)](https://github.com/desiFish/Smart-Aquarium-V3.1-Lite/wiki)
+
 An advanced, ESP8266-based interactive aquarium control system with a modern web interface for managing multiple relays, timers, and schedules.
 
 > © 2025 desiFish. This project is protected by copyright law. All rights reserved unless explicitly stated under the GPL v3 license terms.
