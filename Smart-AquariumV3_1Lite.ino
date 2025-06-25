@@ -30,7 +30,7 @@
 #include <WiFiUdp.h>
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "asia.pool.ntp.org", 19800); // 19800 = UTC+5:30 for India
+NTPClient timeClient(ntpUDP, "in.pool.ntp.org", 19800); // 19800 = UTC+5:30 for India, in=India (check readme)
 
 // Buffered time variables
 byte currentHour = 0;
@@ -39,7 +39,7 @@ unsigned long lastTimeUpdate = 0;
 const unsigned long TIME_UPDATE_INTERVAL = 30000; // 30 seconds in milliseconds
 
 // Software version
-#define SWVersion "v1.0.0"
+#define SWVersion "v1.0.1"
 
 // WiFi credentials
 const char *ssid = pssid;     // replace "pssid" and with your Wifi Name a.k.a SSID (STRING type)

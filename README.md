@@ -157,6 +157,29 @@ The above schematic shows the connections between the ESP8266 and relay module. 
 
 All libraries can be installed through the Arduino Library Manager. These specific libraries are mandatory for proper functionality of the ElegantOTA system.
 
+## 🌐 NTP Server Selection
+
+For accurate time synchronization, this project uses NTP (Network Time Protocol) servers. By default, it uses `pool.ntp.org`, which automatically selects a server for you. However, for improved reliability and lower latency, you can specify a regional NTP pool server closer to your location.
+
+- **Why choose a regional server?**
+  - Faster response times
+  - Reduced risk of timeouts
+  - Less load on global NTP infrastructure
+
+### How to select your nearest NTP server
+
+1. Visit the [NTP Pool Project zone list](https://www.ntppool.org/en/).
+2. Find your country or region. For example, for India, use:  
+   [`in.pool.ntp.org`](https://www.ntppool.org/en/zone/in)
+3. Replace the default NTP server in your code with the regional pool address.  
+   Example for India:
+   ```cpp
+   const char* ntpServer = "in.pool.ntp.org";
+   ```
+4. For other regions, use the corresponding pool address (e.g., `us.pool.ntp.org`, `eu.pool.ntp.org`, etc.).
+
+> 💡 **Tip:** Always choose the pool closest to your physical location for best results.
+
 ## 🚀 Installation
 
 1. Clone this repository:
