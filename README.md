@@ -157,28 +157,31 @@ The above schematic shows the connections between the ESP8266 and relay module. 
 
 All libraries can be installed through the Arduino Library Manager. These specific libraries are mandatory for proper functionality of the ElegantOTA system.
 
-## 🌐 NTP Server Selection
+## 🕒 NTP Time Offset and Server Selection
 
-For accurate time synchronization, this project uses NTP (Network Time Protocol) servers. By default, it uses `pool.ntp.org`, which automatically selects a server for you. However, for improved reliability and lower latency, you can specify a regional NTP pool server closer to your location.
+The code uses the following line to initialize the NTP client:
+```cpp
+NTPClient timeClient(ntpUDP, "in.pool.ntp.org", 19800);
+```
+- The third parameter, `19800`, is the time offset in **seconds** for your timezone.
+- `19800` seconds = **5 hours 30 minutes** (5 × 3600 + 30 × 60), which is the offset for **Indian Standard Time (IST, UTC+5:30)**.
+- If you are in a different timezone, calculate your offset in seconds and update this value accordingly.
 
-- **Why choose a regional server?**
-  - Faster response times
-  - Reduced risk of timeouts
-  - Less load on global NTP infrastructure
+**How to calculate your offset:**
+- Offset (in seconds) = (Hours × 3600) + (Minutes × 60)
+- Example for UTC+2: (2 × 3600) = `7200`
 
-### How to select your nearest NTP server
+**Default NTP Server:**
+- The default NTP server is set to `"in.pool.ntp.org"` (India).
+- For best accuracy, select the NTP pool server nearest to your location from [https://www.ntppool.org/en/zone/in](https://www.ntppool.org/en/zone/in) or [https://www.ntppool.org/](https://www.ntppool.org/).
 
-1. Visit the [NTP Pool Project zone list](https://www.ntppool.org/en/).
-2. Find your country or region. For example, for India, use:  
-   [`in.pool.ntp.org`](https://www.ntppool.org/en/zone/in)
-3. Replace the default NTP server in your code with the regional pool address.  
-   Example for India:
-   ```cpp
-   const char* ntpServer = "in.pool.ntp.org";
-   ```
-4. For other regions, use the corresponding pool address (e.g., `us.pool.ntp.org`, `eu.pool.ntp.org`, etc.).
+**To change:**
+- Replace `"in.pool.ntp.org"` with your region's NTP pool server (e.g., `"europe.pool.ntp.org"`, `"us.pool.ntp.org"`, etc.).
+- Adjust the offset to match your local timezone.
 
-> 💡 **Tip:** Always choose the pool closest to your physical location for best results.
+Example for Central European Time (CET, UTC+1):
+```cpp
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
 
 ## 🚀 Installation
 
@@ -207,6 +210,7 @@ For accurate time synchronization, this project uses NTP (Network Time Protocol)
    
 6. Filesystem and Future Updates (Wireless/OTA):
    - Press `Ctrl + Shift + P` in Arduino IDE (or follow the [guide](https://randomnerdtutorials.com/arduino-ide-2-install-esp8266-littlefs/)) to launch ESP8266 LittleFS Data Upload tool
+   - **Note:** The LittleFS uploader tool requires a COM port to be selected, even if the ESP8266 is not connected. You must select a port such as `COM3 [Not Connected]` in the Arduino IDE. If no COM port is available, the upload will fail.
    - When it fails (as ESP8266 is not connected via USB), check the error message
    - Locate the generated binary file path from the error message (usually in the temporary build folder)
    ![LittleFS Binary Location](src/littleFS.jpg)     
