@@ -95,10 +95,10 @@ By using this project, you acknowledge and agree to the following:
   </div>
 </div>
 </div>
+</div>
 <div style="margin: 20px 0; padding: 10px; border-left: 4px solid orange; background: #fffbe6; color: #b36b00; font-size: 1.05em;">
 <strong>Note:</strong> My soldering work shown in the images is very congested due to last moment changes and additions. I know what I'm doing and have taken proper precautions.<br>
 <strong>Please do not replicate this for your own project.</strong> Use a bigger PCB or Vero Board and ensure proper safety and spacing for all components.
-</div>
 </div>
 
 ## 🕒 RTC Support (DS1307/DS3231)
