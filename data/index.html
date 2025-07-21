@@ -333,13 +333,6 @@
             text-align: center;
         }
 
-        .time-display {
-            color: #2196F3;
-            font-size: 1.2rem;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-
         .controls-container {
             background: #1e1e1e;
             padding: 1.5rem;
@@ -435,69 +428,60 @@
             }
         }
 
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-                gap: 10px;
-            }
+        #timerControl_1,
+        #timerControl_2,
+        #timerControl_3,
+        #timerControl_4 {
+            text-align: center;
+        }
 
-            .page-header {
-                padding: 1rem;
-            }
+        #timerControl_1 div,
+        #timerControl_2 div,
+        #timerControl_3 div,
+        #timerControl_4 div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
 
-            .controls-container {
-                padding: 1rem;
-            }
+        #timerControl_1 label,
+        #timerControl_2 label,
+        #timerControl_3 label,
+        #timerControl_4 label {
 
-            .mode-selector {
-                flex-wrap: wrap;
-                gap: 0.5rem;
-            }
+            text-align: right;
+        }
 
-            .mode-selector label {
-                padding: 6px 12px;
-                font-size: 0.9rem;
-            }
+        select {
+            flex: 0 1 120px;
+            margin: 0;
+        }
 
-            .toggle-input-group {
-                flex-direction: column;
-                gap: 1rem;
-            }
+        .timer-switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 1rem auto;
+            width: auto;
+        }
 
-            .time-input {
-                width: 100px;
-            }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            flex: none;
+        }
 
-            .switch-container {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .timer-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .timer-controls select {
-                width: 100%;
-            }
-
-            #autoControl_1 div,
-            #autoControl_2 div {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: left;
-            }
-
-            #autoControl_1 label,
-            #autoControl_2 label {
-                text-align: left;
-                margin-bottom: 0.25rem;
-            }
-
-            .btn-set {
-                width: 100%;
-            }
+        .switch-label {
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex: none;
         }
 
         /* Timer Control Styles */
@@ -664,19 +648,98 @@
         .toggle-timer.active {
             display: block;
         }
+
+        /* Additional responsive styles */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px 10px 30px;
+            }
+
+            .grid-container {
+                gap: 10px;
+            }
+
+            .controls-container {
+                padding: 1rem;
+            }
+
+            .mode-selector {
+                flex-wrap: wrap;
+            }
+
+            .mode-selector label {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+
+            .toggle-input-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .time-input {
+                width: 100px;
+            }
+
+            select {
+                width: 100px;
+            }
+
+            .timer-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .timer-controls label {
+                text-align: center;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .navbar {
+                padding: 4px;
+            }
+
+            .nav-btn {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .mode-selector label {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+
+            .led-title {
+                font-size: 1rem;
+            }
+
+            .switch-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .timer-switch-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="page-header">
         <div class="header">
-            <h2 class="page-title">Smart Aquarium V3.1 Lite</h2>
+            <h2 class="page-title">Smart Aquarium V3.1</h2>
             <div id="connectionStatus" class="connection-status offline">
                 <span class="connection-dot"></span>
                 <span>Offline</span>
             </div>
         </div>
-        <div id="timeDisplay" class="time-display">Current time: --:--</div>
     </div>
 
     <nav class="navbar">
@@ -893,7 +956,6 @@
     </footer>
 
     <script>
-        // Add this function at the start of the script section
         function fetchLEDNames() {
             [1, 2].forEach(ledId => {
                 fetch(`/api/led${ledId}/name`)
@@ -967,7 +1029,7 @@
             });
         }
 
-        // Add this function before setupLED
+        // Function to update Relay status
         function syncModesFromServer() {
             [1, 2].forEach(ledId => {
                 if (!ledStates[ledId].enabled) return;
@@ -1006,8 +1068,7 @@
                     .catch(error => console.error(`Error syncing mode for LED ${ledId}:`, error));
             });
         }
-
-        // Replace the initModesFromServer function
+        // Function to initialize modes from server
         function initModesFromServer() {
             [1, 2].forEach(ledId => {
                 fetch(`/api/led${ledId}/mode`)
@@ -1024,7 +1085,6 @@
                             indicator.classList.remove('active');
                         });
 
-                        // Add active class to current mode indicator
                         const modeSelector = document.querySelector(`#mode${mode.charAt(0).toUpperCase() + mode.slice(1)}_${ledId}`);
                         if (modeSelector) {
                             modeSelector.checked = true;
@@ -1048,7 +1108,6 @@
             });
         }
 
-        // Add this function after fetchLEDStates
         function fetchScheduleTimes() {
             [1, 2].forEach(ledId => {
                 fetch(`/api/led${ledId}/schedule`)
@@ -1663,7 +1722,7 @@
                 });
         }
 
-        // Add this new function to check and update mode indicators
+        // check and update mode indicators
         function updateModeIndicators(ledId) {
             fetch(`/api/led${ledId}/mode`)
                 .then(response => response.text())
@@ -1672,8 +1731,6 @@
                     document.querySelectorAll(`#led${ledId} .mode-indicator`).forEach(indicator => {
                         indicator.classList.remove('active');
                     });
-
-                    // Add active class to current mode's indicator
                     const activeMode = currentMode.toLowerCase().trim();
                     const modeSelector = document.querySelector(`#mode${activeMode.charAt(0).toUpperCase() + activeMode.slice(1)}_${ledId}`);
                     if (modeSelector) {
@@ -1690,7 +1747,7 @@
         function updateLEDStatus(ledId) {
             if (!ledStates[ledId].enabled) return;
 
-            // Add this line to update mode indicators
+            //update mode indicators
             updateModeIndicators(ledId);
 
             const indicator = document.querySelector(`#led${ledId} .status-indicator`);
@@ -1772,10 +1829,8 @@
                 .catch(error => console.error('Error checking RTC sync:', error));
         }
 
-        // Replace existing initialization code with this modified version
         function initializeApp() {
-            updateRTCDisplay(); // Initial time display update
-            setInterval(updateRTCDisplay, 30000); // Update time every 30 seconds
+            checkRTCSync(); // Add RTC check at startup
 
             Promise.all([
                 fetchLEDStates(),
@@ -1794,17 +1849,7 @@
             fetchVersion();
         }
 
-        function updateRTCDisplay() {
-            fetch('/api/rtctime')
-                .then(response => response.text())
-                .then(rtcTime => {
-                    document.getElementById('timeDisplay').textContent = `Current time: ${rtcTime}`;
-                })
-                .catch(error => {
-                    console.error('Error fetching RTC time:', error);
-                    document.getElementById('timeDisplay').textContent = 'Current time: Error';
-                });
-        }        // Start the app immediately when the script loads
+        // Start the app
         initializeApp();
 
         function checkToggleState(ledId) {
@@ -1864,7 +1909,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (!data.success) throw new Error(data.error || 'Failed to update mode');
-                    // Add this line to update indicators immediately
+                    // update indicators immediately
                     updateModeIndicators(ledId);
                     if (newMode === 'timer') {
                         checkTimerState(ledId);
@@ -1872,6 +1917,30 @@
                 })
                 .catch(error => console.error('Error updating mode:', error));
         }
+
+        // Error polling: check /api/error every 5 seconds and alert if a new error message is present
+        (function errorPoller() {
+            let lastErrorMsg = "";
+            async function pollError() {
+                try {
+                    const resp = await fetch('/api/error?_=' + Date.now());
+                    if (!resp.ok) return;
+                    const data = await resp.json();
+                    const msg = (data && data.error) ? String(data.error).trim() : "";
+                    if (msg && msg !== lastErrorMsg) {
+                        alert("Device Error:\n\n" + msg);
+                        lastErrorMsg = msg;
+                    } else if (!msg) {
+                        lastErrorMsg = "";
+                    }
+                } catch (e) {
+                    // Ignore fetch errors
+                } finally {
+                    setTimeout(pollError, 5000);
+                }
+            }
+            pollError();
+        })();
     </script>
 </body>
 
