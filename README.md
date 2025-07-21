@@ -1,6 +1,6 @@
 # Smart Aquarium V3.1 Lite 🐟
 
-> 📢 **Looking for a heavier version?** Check out [Smart Aquarium V3.1](https://github.com/desiFish/Smart-Aquarium-V3.1) - A scaled up 4-relay version of this project with RTC!
+> 📢 **Looking for a heavier version?** Check out [Smart Aquarium V3.1](https://github.com/desiFish/Smart-Aquarium-V3.1) - A scaled up 4-relay version of this project!
 
 > 📢 **New Project Notice**: ESP32 version: [Smart Aquarium V4.0](https://github.com/desiFish/Smart-Aquarium-V4.0) is under development that supports similar powerful customization options and advanced monitoring features for aquarium inhabitants. Be the first ones to try it out and give feedbacks! 🚀
 
