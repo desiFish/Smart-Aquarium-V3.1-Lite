@@ -77,18 +77,24 @@ By using this project, you acknowledge and agree to the following:
     <img src="src/x2.jpg" alt="Inside-Close" width="250"/>
     <p><em>Inside-Close</em></p>
   </div>
-</div>
-<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 600px; margin: 0 auto;">
+  <div>
+    <img src="src/x1.jpg" alt="Inside" width="250"/>
+    <p><em>Inside</em></p>
+  </div>
+  <div>
+    <img src="src/x2.jpg" alt="Inside-Close" width="250"/>
+    <p><em>Inside-Close</em></p>
+  </div>
   <div>
     <img src="src/x3.jpg" alt="Inside with all parts" width="250"/>
     <p><em>Inside with all parts</em></p>
   </div>
   <div>
-    <img src="src/x4.jpg" alt="Extra Image 4" width="250"/>
+    <img src="src/x4.jpg" alt="Outside" width="250"/>
     <p><em>Outside</em></p>
   </div>
-</div>
-<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
   <div>
     <img src="src/x5.jpg" alt="Status LED" width="250"/>
     <p><em>Status LED</em></p>
