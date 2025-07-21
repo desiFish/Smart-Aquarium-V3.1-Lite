@@ -200,7 +200,6 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
 ```
 
 ## 🚀 Installation
-🛠️ CH340 Driver Troubleshooting
 
 > **🛠️ CH340 Driver Troubleshooting**
 >
