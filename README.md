@@ -62,6 +62,16 @@ By using this project, you acknowledge and agree to the following:
 </div>
 </div>
 
+## 🕒 RTC Support (DS1307/DS3231)
+
+This project supports both **DS1307** and **DS3231** RTC modules for accurate timekeeping.  
+- By default, the code uses DS1307.  
+- To use DS3231, uncomment the relevant line in the code (`RTC_DS3231 rtc;`) and comment out the DS1307 line before uploading.
+- Both modules connect via I2C (SDA/SCL) to the ESP8266.
+- RTC time can be updated from the **Settings** page in the web interface.
+
+> **Note:** The RTC keeps time even when the ESP8266 is powered off. Time synchronization from NTP is only required after initial setup or if the RTC loses power.
+
 ## 🌟 Features
 
 - **🎛️ Multiple Control Modes**
@@ -77,13 +87,13 @@ By using this project, you acknowledge and agree to the following:
   - Connection Status Indicator
 
 - **⏰ Time Management**
-  - NTP Time Synchronization (Updates every 30 seconds)
-  - Uses pool.ntp.org servers with 30-second polling interval to prevent server overload
+  - NTP Time Synchronization (manual update via Settings page)
+  - Uses pool.ntp.org servers for time sync
   - Automatic Time Updates with fallback servers
-  - Time Accuracy: ±30 seconds (sufficient for most aquarium timing needs)
+  - Time Accuracy depends on RTC module (DS1307/DS3231)
   - Persistent Scheduling
-  - Requires constant WiFi connection
-  > 📝 **Note**: This version relies on NTP for time management and requires constant WiFi connectivity. The 30-second update interval is chosen to balance accuracy with NTP server load. For offline operation or exact timing, consider using [Smart Aquarium V3.1](https://github.com/desiFish/Smart-Aquarium-V3.1) which uses an RTC module and can be modified accordingly.
+  - Requires WiFi connection for NTP sync
+  > 📝 **Note**: This version relies on RTC for time management. Time can be updated from NTP manually via the Settings page. For offline operation or exact timing, DS3231 is recommended for higher accuracy.
 
 - **🎨 Modern UI**
   - Responsive Design
@@ -126,11 +136,14 @@ This system is highly scalable and can be easily modified to control more or few
 
 - ESP8266 12-E NodeMCU Development Board (or any compatible ESP8266 module)
 - 2-Channel Relay Module
+- RTC Module: DS1307 (default) or DS3231 (select in code before uploading)
 - Power Supply (5V)
 - Stable WiFi Connection (2.4GHz network with internet access for NTP)
-  > ⚠️ **Important**: This version requires constant internet connectivity for time synchronization. Power or internet outages will affect timing accuracy until reconnection.
+  > ⚠️ **Important**: RTC module is required for timekeeping. DS3231 is recommended for higher accuracy and reliability. Internet connectivity is only needed for time synchronization via NTP (manual update).
 
-> 💡 **Compatibility**: While this project is developed and tested on the ESP8266 12-E NodeMCU Kit, it should work on other ESP8266-based development boards with minimal modifications. Just ensure your board has enough GPIO pins for the relay and RTC connections.
+> 💡 **Compatibility**: This project is developed and tested on the ESP8266 12-E NodeMCU Kit.  
+> It has been tested on **NodeMCU 1.0** and **LOLIN (Wemos) D1 R2 Mini** boards.  
+> It works with other ESP8266-based boards with minimal changes. Ensure your board has enough GPIO pins for relays and I2C (SDA/SCL) for RTC.
 
 ### ESP8266 Pinout
 <div align="center">
@@ -182,6 +195,7 @@ NTPClient timeClient(ntpUDP, "in.pool.ntp.org", 19800);
 Example for Central European Time (CET, UTC+1):
 ```cpp
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
+```
 
 ## 🚀 Installation
 
@@ -247,34 +261,54 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
 The system provides a modern, fully responsive web interface optimized for both desktop and mobile devices:
 
 - **Main Dashboard** (`index.html`)
-  - Responsive Relay Controls
-  - Touch-friendly Mode Selection
-  - Intuitive Timer Settings
-  - Real-time Status Monitoring
-  - Adaptive Layout for All Screen Sizes
+  - Control and monitor each relay channel in real time
+  - Select operation mode: Manual, Auto, Timer, or Toggle
+  - Set schedules, timers, and toggle intervals
+  - Enable/disable relays
+  - View live relay status and mode indicators
+  - Responsive and touch-friendly for mobile and desktop
 
 - **Settings Page** (`settings.html`)
+  - Configure WiFi and network settings (DHCP/static IP)
+  - Change relay names
+  - Set NTP server and timezone
+  - Update RTC time from NTP
+  - Backup and restore configuration
+  - View current time, date, and day of week
   - Mobile-optimized Input Fields
   - Easy Touch Navigation
   - Responsive Time Controls
   - Accessible System Information
 
+- **Hardware Specs Page** (`specs.html`)
+  - Displays detailed hardware information such as chip ID, flash size, CPU frequency, WiFi signal strength, and more.
+  - Auto-refreshes every 5 seconds.
+  - Shows connection status and firmware version.
+
 ## 🔌 API Endpoints
 
 The system exposes several RESTful API endpoints:
 
-- `/api/status` - System status
+- `/api/status` - System status (returns true if running)
 - `/api/version` - Firmware version
-- `/api/rtctime` - Current RTC time
-- `/api/ledX/*` - Relay control endpoints where X is 1-4
-  - `/status` - Get relay status
-  - `/toggle` - Toggle relay state
-  - `/mode` - Set/get operation mode
-  - `/schedule` - Set/get schedules
-  - `/timer` - Set timer duration
-  - `/timer/state` - Get timer status
-  - `/toggle-mode` - Set toggle mode parameters
-  - `/name` - Set/get relay name
+- `/api/rtctime` - Current RTC time (HH:MM)
+- `/api/clock` - Returns time, date, and day of week
+- `/api/wifi` (GET/POST) - Get or update WiFi and network settings
+- `/api/ntp` (GET/POST) - Get or update NTP server and timezone settings
+- `/api/reboot` (POST) - Reboot the device
+- `/api/time/update` (POST) - Trigger RTC time update from NTP
+- `/api/error` (GET) - Get the latest error message (clears after reading)
+- `/api/system/details` (GET) - Get ESP8266 system and hardware details
+- `/api/ledX/status` (GET) - Get relay status (ON/OFF)
+- `/api/ledX/toggle` (POST) - Toggle relay state
+- `/api/ledX/mode` (GET/POST) - Get or set operation mode (manual, auto, timer, toggle)
+- `/api/ledX/schedule` (GET/POST) - Get or set relay schedule (on/off times)
+- `/api/ledX/timer` (POST) - Set timer duration
+- `/api/ledX/timer/state` (GET) - Get timer status
+- `/api/ledX/toggle-mode` (POST) - Set toggle mode parameters
+- `/api/ledX/toggle-mode/state` (GET) - Get toggle mode status
+- `/api/ledX/name` (GET/POST) - Get or set relay name
+- `/api/ledX/system/state` (GET/POST) - Get or set relay enabled/disabled state
 
 ## 🎯 Contributing
 

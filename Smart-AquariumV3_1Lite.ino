@@ -44,6 +44,7 @@
 // Define the array of leds
 CRGB leds[NUM_LEDS];
 
+// RTC_DS3231 rtc; // Uncomment if using DS3231 RTC
 RTC_DS1307 rtc;
 WiFiUDP ntpUDP;
 
@@ -883,12 +884,24 @@ void setup()
     FastLED.delay(1000);
 
     Serial.println("Setup complete");
+    FastLED.setBrightness(10);
 }
 
 void loop()
 {
     ElegantOTA.loop();
     unsigned long currentMillis = millis(); // Update time if requested
+    static unsigned long lastGreenFlash = 0;
+    if (currentMillis - lastGreenFlash >= 2000)
+    {
+        leds[0] = CRGB::Green;
+        FastLED.show();
+        FastLED.delay(10);
+        leds[0] = CRGB::Black;
+        FastLED.show();
+        FastLED.delay(10);
+        lastGreenFlash = currentMillis;
+    }
 
     if (updateTime)
     {
