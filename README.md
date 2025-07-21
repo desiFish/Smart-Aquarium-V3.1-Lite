@@ -42,65 +42,15 @@ By using this project, you acknowledge and agree to the following:
 **USE THIS PROJECT AT YOUR OWN RISK**
 
 ## 📸 Gallery
-<div style="display: flex; flex-direction: column; align-items: center; gap: 24px; margin-bottom: 16px;">
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div>
-      <img src="src/index.png" alt="Main Dashboard" width="250"/>
-      <p><em>Main Dashboard - Desktop View</em></p>
-    </div>
-    <div>
-      <img src="src/settings.png" alt="Settings Interface" width="250"/>
-      <p><em>Settings Page - Desktop View</em></p>
-    </div>
-  </div>
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div>
-      <img src="src/specs.png" alt="Hardware Info Desktop" width="250"/>
-      <p><em>Hardware Info Page - Desktop View</em></p>
-    </div>
-    <div>
-      <img src="src/index-phone.png" alt="Mobile Dashboard" width="250"/>
-      <p><em>Main Dashboard - Mobile View</em></p>
-    </div>
-  </div>
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div>
-      <img src="src/settings-phone.png" alt="Mobile Settings" width="250"/>
-      <p><em>Settings Page - Mobile View</em></p>
-    </div>
-    <div>
-      <img src="src/specs-phone.png" alt="Hardware Info Mobile" width="250"/>
-      <p><em>Hardware Info Page - Mobile View</em></p>
-    </div>
-  </div>
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div>
-      <img src="src/x1.jpg" alt="Inside" width="250"/>
-      <p><em>Inside</em></p>
-    </div>
-    <div>
-      <img src="src/x2.jpg" alt="Inside-Close" width="250"/>
-      <p><em>Inside-Close</em></p>
-    </div>
-  </div>
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div>
-      <img src="src/x3.jpg" alt="Inside with all parts" width="250"/>
-      <p><em>Inside with all parts</em></p>
-    </div>
-    <div>
-      <img src="src/x4.jpg" alt="Outside" width="250"/>
-      <p><em>Outside</em></p>
-    </div>
-  </div>
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div>
-      <img src="src/x5.jpg" alt="Status LED" width="250"/>
-      <p><em>Status LED</em></p>
-    </div>
-  </div>
-</div>
-</div>
+
+| ![Main Dashboard - Desktop View](src/index.png) <br><em>Main Dashboard - Desktop View</em> | ![Settings Page - Desktop View](src/settings.png) <br><em>Settings Page - Desktop View</em> |
+|:--:|:--:|
+| ![Hardware Info Page - Desktop View](src/specs.png) <br><em>Hardware Info Page - Desktop View</em> | ![Main Dashboard - Mobile View](src/index-phone.png) <br><em>Main Dashboard - Mobile View</em> |
+| ![Settings Page - Mobile View](src/settings-phone.png) <br><em>Settings Page - Mobile View</em> | ![Hardware Info Page - Mobile View](src/specs-phone.png) <br><em>Hardware Info Page - Mobile View</em> |
+| ![Inside](src/x1.jpg) <br><em>Inside</em> | ![Inside-Close](src/x2.jpg) <br><em>Inside-Close</em> |
+| ![Inside with all parts](src/x3.jpg) <br><em>Inside with all parts</em> | ![Outside](src/x4.jpg) <br><em>Outside</em> |
+| ![Status LED](src/x5.jpg) <br><em>Status LED</em> |  |
+
 <div style="margin: 20px 0; padding: 10px; border-left: 4px solid orange; background: #fffbe6; color: #b36b00; font-size: 1.05em;">
 <strong>Note:</strong> My soldering work shown in the images is very congested due to last moment changes and additions. I know what I'm doing and have taken proper precautions.<br>
 <strong>Please do not replicate this for your own project.</strong> Use a bigger PCB or Vero Board and ensure proper safety and spacing for all components.
