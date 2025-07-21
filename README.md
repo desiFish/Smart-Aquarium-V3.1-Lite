@@ -42,64 +42,63 @@ By using this project, you acknowledge and agree to the following:
 **USE THIS PROJECT AT YOUR OWN RISK**
 
 ## 📸 Gallery
-
-<div align="center">
-<img src="src/index.png" alt="Main Dashboard" width="600"/>
-<p><em>Main Dashboard - Desktop View: Control panel showing relay states and operation modes</em></p>
-
-<img src="src/settings.png" alt="Settings Interface" width="600"/>
-<p><em>Settings Page - Desktop View: Configuration interface for relay names and system settings</em></p>
-
-<img src="src/specs.png" alt="Hardware Info Desktop" width="600"/>
-<p><em>Hardware Info Page - Desktop View: Real-time ESP8266 system and WiFi details</em></p>
-
-<div style="display: flex; justify-content: center; gap: 20px;">
-  <div>
-    <img src="src/index-phone.png" alt="Mobile Dashboard" width="250"/>
-    <p><em>Main Dashboard - Mobile View</em></p>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 24px; margin-bottom: 16px;">
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <img src="src/index.png" alt="Main Dashboard" width="250"/>
+      <p><em>Main Dashboard - Desktop View</em></p>
+    </div>
+    <div>
+      <img src="src/settings.png" alt="Settings Interface" width="250"/>
+      <p><em>Settings Page - Desktop View</em></p>
+    </div>
   </div>
-  <div>
-    <img src="src/settings-phone.png" alt="Mobile Settings" width="250"/>
-    <p><em>Settings Page - Mobile View</em></p>
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <img src="src/specs.png" alt="Hardware Info Desktop" width="250"/>
+      <p><em>Hardware Info Page - Desktop View</em></p>
+    </div>
+    <div>
+      <img src="src/index-phone.png" alt="Mobile Dashboard" width="250"/>
+      <p><em>Main Dashboard - Mobile View</em></p>
+    </div>
   </div>
-  <div>
-    <img src="src/specs-phone.png" alt="Hardware Info Mobile" width="250"/>
-    <p><em>Hardware Info Page - Mobile View</em></p>
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <img src="src/settings-phone.png" alt="Mobile Settings" width="250"/>
+      <p><em>Settings Page - Mobile View</em></p>
+    </div>
+    <div>
+      <img src="src/specs-phone.png" alt="Hardware Info Mobile" width="250"/>
+      <p><em>Hardware Info Page - Mobile View</em></p>
+    </div>
   </div>
-</div>
-
-<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-  <div>
-    <img src="src/x1.jpg" alt="Inside" width="250"/>
-    <p><em>Inside</em></p>
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <img src="src/x1.jpg" alt="Inside" width="250"/>
+      <p><em>Inside</em></p>
+    </div>
+    <div>
+      <img src="src/x2.jpg" alt="Inside-Close" width="250"/>
+      <p><em>Inside-Close</em></p>
+    </div>
   </div>
-  <div>
-    <img src="src/x2.jpg" alt="Inside-Close" width="250"/>
-    <p><em>Inside-Close</em></p>
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <img src="src/x3.jpg" alt="Inside with all parts" width="250"/>
+      <p><em>Inside with all parts</em></p>
+    </div>
+    <div>
+      <img src="src/x4.jpg" alt="Outside" width="250"/>
+      <p><em>Outside</em></p>
+    </div>
   </div>
-
-<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 600px; margin: 0 auto;">
-  <div>
-    <img src="src/x1.jpg" alt="Inside" width="250"/>
-    <p><em>Inside</em></p>
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <img src="src/x5.jpg" alt="Status LED" width="250"/>
+      <p><em>Status LED</em></p>
+    </div>
   </div>
-  <div>
-    <img src="src/x2.jpg" alt="Inside-Close" width="250"/>
-    <p><em>Inside-Close</em></p>
-  </div>
-  <div>
-    <img src="src/x3.jpg" alt="Inside with all parts" width="250"/>
-    <p><em>Inside with all parts</em></p>
-  </div>
-  <div>
-    <img src="src/x4.jpg" alt="Outside" width="250"/>
-    <p><em>Outside</em></p>
-  </div>
-  <div>
-    <img src="src/x5.jpg" alt="Status LED" width="250"/>
-    <p><em>Status LED</em></p>
-  </div>
-</div>
 </div>
 </div>
 <div style="margin: 20px 0; padding: 10px; border-left: 4px solid orange; background: #fffbe6; color: #b36b00; font-size: 1.05em;">
