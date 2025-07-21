@@ -877,8 +877,6 @@ void setup()
         rtcTimeUpdater();
         writeRtcUpdateFlag(false);
     }
-    Serial.println("RTC time update check complete");
-    // FastLED.delay(1000);
     leds[0] = CRGB::Black;
     FastLED.show();
     FastLED.delay(1000);

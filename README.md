@@ -167,6 +167,8 @@ The above schematic shows the connections between the ESP8266 and relay module. 
 - ArduinoJson
 - ElegantOTA
 - NTPClient
+- FastLED
+- [RTClib](https://github.com/adafruit/RTClib) - **Required Latest Version**
 
 All libraries can be installed through the Arduino Library Manager. These specific libraries are mandatory for proper functionality of the ElegantOTA system.
 
@@ -208,39 +210,93 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
 
 3. Install required libraries through Arduino Library Manager
 
-4. Configure WiFi credentials in Smart-AquariumV3_1Lite.ino:
-   ```cpp
-   const char *ssid = "YourWiFiName";
-   const char *password = "YourWiFiPassword";
-   ```
-
-5. Initial Setup (Wired Upload - One time only):
+4. Initial Setup (Wired Upload - One time only):
    - Connect ESP8266 to your computer via USB
    - Install "ESP8266 LittleFS Data Upload" tool in Arduino IDE ([Installation Guide](https://randomnerdtutorials.com/arduino-ide-2-install-esp8266-littlefs/))
    - Ensure the `data` folder contains `index.html`, `settings.html`, and `favicon.jpg` with exact folder structure
    - Upload HTML files using the guide above
    - Upload the code from Arduino IDE
-   - After successful code upload, the device will connect to your configured network
-   
-6. Filesystem and Future Updates (Wireless/OTA):
+   - After successful code upload, the device will create a WiFi access point (hotspot) named `Aquarium-Setup` with password `12345678`. Connect to this network using any device (preferably a PC). Ignore any alert about "connected with no internet." Open a browser and go to `192.168.4.1`. Navigate to the Settings page, enter your WiFi credentials, and click on "Save WiFi." The device will then reboot and attempt to connect to your configured network.
+
+   **Dynamic vs Static IP:**
+   - By default, the device uses **Dynamic IP (DHCP)**. This means your WiFi router will automatically assign an available IP address to the device. This is recommended for most users and ensures easy connectivity.
+   - However, with Dynamic IP, the assigned address may change every time the device or router restarts. This can be inconvenient, as you may need to keep searching for the new IP address to access the device.
+   - If you are not sure what to use for static IP, simply fill in your WiFi SSID and password, do NOT check the "Use Static IP" slider, and click on "Save WiFi." When the device reboots, find the new IP assigned to it from your router's device list or any router app. Open that IP in your browser; the Smart Aquarium V3.1 page will open. Go to Settings again and click on "Make this static IP." The device will set the current router-assigned IP settings as static and reboot. Now you can keep using the same IP without worries.
+   - If you want the device to always have the same IP address (for example, for port forwarding or remote access), you can configure a **Static IP** in the Settings page. Enter the desired IP address, gateway, subnet mask, and DNS information. Make sure the static IP is not already in use on your network to avoid conflicts.
+   - If you are unsure, use Dynamic IP (leave static IP fields blank or disabled in the Settings page).
+
+   **RTC Synchronization and Browser Notification:**
+   - The browser will notify you if the RTC (Real Time Clock) is not synchronized by comparing the RTC time with your current device (PC/Smartphone) time.
+   - On the Settings page, the RTC time is displayed just under the main buttons. If the RTC is not connected or there is an error, it will show `RTC_ERROR` instead of the time. This is a reliable place to check RTC status.
+   - If you notice the RTC time is incorrect, scroll to the bottom of the Settings page and select the nearest NTP pool server to you (if unsure, use `pool.ntp.org`) and set your timezone. Save the settings, it will automatically update RTC from the NTP server.
+   - The browser updates the RTC time shown on the Settings page every 30 seconds, so the displayed time will always be within ±1 second of the actual RTC time.
+
+5. Filesystem and Future Updates (Wireless/OTA):
    - Press `Ctrl + Shift + P` in Arduino IDE (or follow the [guide](https://randomnerdtutorials.com/arduino-ide-2-install-esp8266-littlefs/)) to launch ESP8266 LittleFS Data Upload tool
    - **Note:** The LittleFS uploader tool requires a COM port to be selected, even if the ESP8266 is not connected. You must select a port such as `COM3 [Not Connected]` in the Arduino IDE. If no COM port is available, the upload will fail.
    - When it fails (as ESP8266 is not connected via USB), check the error message
    - Locate the generated binary file path from the error message (usually in the temporary build folder)
    ![LittleFS Binary Location](src/littleFS.jpg)     
    - Access the ElegantOTA interface at `http://[ESP-IP]/update`
-   - For filesystem updates: Select "Filesystem" mode and upload the LittleFS binary (.bin)
+   - For filesystem updates: Select "LittleFS/SPIFFS" mode and upload the LittleFS binary (.bin)
    - For code updates: Select "Firmware" mode and upload the generated .bin file after compiling the sketch in Arduino IDE
-
-> ⚠️ **Configuration Persistence**: When updating the filesystem through OTA, all configuration data stored in LittleFS will be erased. You'll need to:
-> - Rename relays
-> - Reset schedules and timers
-> - Reconfigure any custom settings
-> This only applies to filesystem updates, not firmware updates.
 
 > 📚 **Reference Guides**:
 > - [ElegantOTA Basic Usage Guide](https://randomnerdtutorials.com/esp32-ota-elegantota-arduino/)
 > - [ElegantOTA Async Configuration](https://docs.elegantota.pro/getting-started/async-mode)
+
+### ⚡ Optional: Direct Binary Uploads from Releases
+
+Pre-built binary files are provided for convenience in the [Releases section](https://github.com/desiFish/Smart-Aquarium-V3.1-Lite/releases):
+
+- `filesystem.littlefs.bin` — LittleFS filesystem image for direct upload
+- `esp8266.esp8266.d1_mini.bin` — Compiled firmware for Lolin D1 Mini
+
+You can upload these files directly using the ElegantOTA web interface:
+- Go to `http://[ESP-IP]/update`
+- Select the appropriate mode ("LittleFS/SPIFFS" for filesystem, "Firmware" for code)
+- Upload the corresponding `.bin` file from the release assets
+
+> This is the fastest way to update your device without compiling or using the Arduino IDE.
+
+> ⚠️ **Configuration Persistence**: When updating the filesystem through OTA, all configuration data stored in LittleFS will be erased. This includes NTP settings, WiFi details (including static IP configuration), relay names, schedules, and any other custom settings. You'll need to:
+> - Rename relays
+> - Reset schedules and timers
+> - Reconfigure NTP, WiFi, and static IP settings
+> - Reconfigure any other custom settings
+> This only applies to filesystem updates, not firmware updates.
+
+## 🗄️ Backup and Restore
+
+The system provides a simple backup and restore feature for your convenience:
+
+- **Backup:** Click the Backup button on the Settings page to save all current configuration data (including WiFi, NTP, static IP, relay names, schedules, and more) to your PC or smartphone as a single file. The backup file will be named as `aquariumBackup<date>.json` (e.g., `aquariumBackup30062025.json`). This is highly recommended before performing any software or hardware updates.
+
+- **Restore:** To restore, simply select your backup file using the Restore option on the Settings page. The system will restore everything—literally all your previous settings and configuration will be reinstated automatically.
+
+This makes it easy to recover your setup after updates or hardware changes, ensuring a seamless experience.
+
+> ⚡ **Performance Tip:** Be sure to select **160 MHz CPU speed** from Arduino IDE → Tools. This project will work just fine on 80 MHz, but 160 MHz is recommended for the best experience.
+
+> ⚠️ **Note:** In rare cases, the restore process may fail due to browser or network issues. If this happens, simply reload the page and try the restore again.
+
+> 💡 **Tip**: After the initial wired upload, all future updates can be done wirelessly through ElegantOTA. This includes both code and filesystem updates. Just make sure to have backup.
+
+## ⚠️ Important Troubleshooting
+
+> 🔴 **Critical**: If the server fails to start or the code doesn't work, the most common cause is incorrect static IP configuration. You have two options:
+> 1. **Remove Static IP**: Comment out or remove the static IP configuration code to use DHCP (recommended for beginners)
+> 2. **Configure Static IP**: Ensure your static IP settings match your network configuration:
+>    ```cpp
+>    local_IP(192, 168, 1, 200);     // Choose an unused IP in your network
+>    gateway(192, 168, 1, 1);        // Your router's IP address
+>    subnet(255, 255, 255, 0);       // Your network's subnet mask
+>    ```
+> Most connection issues are resolved by either switching to DHCP or correctly configuring these values!
+
+> 💡 **Don't worry, I've got you covered!** Even if you don't know how to set a static IP, just enter your WiFi name (SSID) and password, and hit "Save WiFi." Upon restart, your router will automatically assign the device a new IP address. To find out what IP address was assigned, check your router's device list. If your router identifies devices by MAC address, simply go to the Hardware Info page in the web interface to find your device's MAC address.
+>
+> Now, after the device restarts and you log in with the new IP, you'll notice that the fields below WiFi name and password (subnet, gateway, etc.) are all filled in automatically. Just check the "Use custom static IP" option and click on "Make this static IP." The device will reboot, and from then on, you can always use this IP address to access your Smart Aquarium—no network knowledge required!
 
 > 💡 **Tip**: After the initial wired upload, all future updates can be done wirelessly through ElegantOTA. This includes both code and filesystem updates.
 
