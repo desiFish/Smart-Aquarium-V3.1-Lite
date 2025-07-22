@@ -161,7 +161,7 @@ The above schematic shows the connections between the ESP8266 and relay module. 
 - ArduinoJson
 - ElegantOTA
 - NTPClient
-- FastLED
+- [Adafruit_NeoPixel](https://github.com/adafruit/Adafruit_NeoPixel) - **Required Latest Version**
 - [RTClib](https://github.com/adafruit/RTClib) - **Required Latest Version**
 
 All libraries can be installed through the Arduino Library Manager. These specific libraries are mandatory for proper functionality of the ElegantOTA system.

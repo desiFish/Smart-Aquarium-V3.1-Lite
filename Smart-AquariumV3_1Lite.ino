@@ -28,21 +28,20 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include "RTClib.h"
-// FastLED for LED control
-#include <FastLED.h>
+// RGB LED control
+#include <Adafruit_NeoPixel.h>
 
 // Software version
-#define SWVersion "v1.1.0"
+#define SWVersion "v1.1.1"
 
-// How many leds in your strip?
-#define NUM_LEDS 1
-// For led chips like WS2812, which have a data line, ground, and power, you just
-// need to define DATA_PIN.
-#define DATA_PIN 0
+// Number of leds
+#define NUMPIXELS 1
+// LED Pin
+#define PIN 0
 // Buzzer pin
 #define BUZZER_PIN 14
-// Define the array of leds
-CRGB leds[NUM_LEDS];
+// Define the leds
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 // RTC_DS3231 rtc; // Uncomment if using DS3231 RTC
 RTC_DS1307 rtc;
@@ -213,6 +212,9 @@ void beep(unsigned int durationMs = 100, unsigned int count = 1, unsigned int pa
 void onOTAStart()
 {
     Serial.println("OTA update started!");
+    pixels.setBrightness(100);
+    pixels.setPixelColor(0, pixels.Color(200, 0, 0));
+    pixels.show();
 }
 
 void onOTAProgress(size_t current, size_t final)
@@ -229,10 +231,12 @@ void onOTAEnd(bool success)
     if (success)
     {
         Serial.println("OTA update finished successfully!");
+        pixels.setPixelColor(0, pixels.Color(0, 0, 200));
     }
     else
     {
         Serial.println("There was an error during OTA update!");
+        pixels.setPixelColor(0, pixels.Color(200, 0, 0));
     }
 }
 
@@ -694,12 +698,11 @@ void setup()
 {
     beep();
     Wire.begin();
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
-    FastLED.setBrightness(100);
-    FastLED.delay(500);
+    pixels.begin();
+    pixels.clear();
 
-    leds[0] = CRGB::Green;
-    FastLED.show();
+    pixels.setPixelColor(0, pixels.Color(0, 150, 0));
+    pixels.show();
 
     Serial.println("Smart Aquarium V3.1 - ESP8266 Setup");
     Serial.begin(115200);
@@ -709,8 +712,8 @@ void setup()
         Serial.println("LittleFS Mount Failed");
         errorBuffer = "Filesystem mount failed. Device cannot operate. Reboot or reflash required.";
         // Error: red
-        leds[0] = CRGB::Red;
-        FastLED.show();
+        pixels.setPixelColor(0, pixels.Color(150, 0, 0));
+        pixels.show();
         return;
     }
 
@@ -722,8 +725,8 @@ void setup()
             Serial.println("Failed to create /config directory");
             errorBuffer = "Failed to create /config directory. Filesystem error.";
             // Error: red
-            leds[0] = CRGB::Red;
-            FastLED.show();
+            pixels.setPixelColor(0, pixels.Color(150, 0, 0));
+            pixels.show();
         }
     }
 
@@ -760,24 +763,24 @@ void setup()
                     Serial.println("STA Failed to configure static IP");
                     errorBuffer = "Failed to configure static IP. Check IP/gateway/subnet values.";
                     staticIpOk = false;
-                    leds[0] = CRGB::Blue;
-                    FastLED.show();
+                    pixels.setPixelColor(0, pixels.Color(0, 0, 150));
+                    pixels.show();
                 }
             }
             else
             {
                 Serial.println("Invalid static IP configuration");
                 errorBuffer = "Invalid static IP configuration. Check IP/gateway/subnet values.";
-                leds[0] = CRGB::Blue;
-                FastLED.show();
+                pixels.setPixelColor(0, pixels.Color(0, 0, 150));
+                pixels.show();
             }
         }
         if (!staticIpOk)
         {
             // Mark as not configured so AP mode is started
             wifiConfigured = false;
-            leds[0] = CRGB::Blue;
-            FastLED.show();
+            pixels.setPixelColor(0, pixels.Color(0, 0, 150));
+            pixels.show();
         }
         else
         {
@@ -785,12 +788,16 @@ void setup()
             WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
             Serial.printf("Connecting to WiFi SSID: %s\n", wifiSsid.c_str());
             unsigned long startAttemptTime = millis();
-            leds[0] = CRGB::White; // White while connecting
-            FastLED.show();
+
             while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 20000)
             {
-                delay(500);
+                pixels.setPixelColor(0, pixels.Color(150, 150, 150));
+                pixels.show();
+                delay(250);
                 Serial.print(".");
+                pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+                pixels.show();
+                delay(250);
             }
             if (WiFi.status() == WL_CONNECTED)
             {
@@ -808,8 +815,8 @@ void setup()
     // ensure AP mode if WiFi is not connected
     if (!wifiConfigured || WiFi.status() != WL_CONNECTED)
     {
-        leds[0] = CRGB::Blue;
-        FastLED.show();
+        pixels.setPixelColor(0, pixels.Color(0, 0, 150));
+        pixels.show();
         // Start in AP mode for configuration
         WiFi.mode(WIFI_AP);
         String apSsid = "Aquarium-Setup";
@@ -851,8 +858,8 @@ void setup()
         Serial.println("Couldn't find RTC");
         errorBuffer = "RTC not found. Please check hardware connection.";
         // Error: red
-        leds[0] = CRGB::Red;
-        FastLED.show();
+        pixels.setPixelColor(0, pixels.Color(150, 0, 0));
+        pixels.show();
     }
 
     // Initialize relay objects
@@ -877,12 +884,10 @@ void setup()
         rtcTimeUpdater();
         writeRtcUpdateFlag(false);
     }
-    leds[0] = CRGB::Black;
-    FastLED.show();
-    FastLED.delay(1000);
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+    pixels.show();
 
     Serial.println("Setup complete");
-    FastLED.setBrightness(10);
 }
 
 void loop()
@@ -892,12 +897,13 @@ void loop()
     static unsigned long lastGreenFlash = 0;
     if (currentMillis - lastGreenFlash >= 2000)
     {
-        leds[0] = CRGB::Green;
-        FastLED.show();
-        FastLED.delay(10);
-        leds[0] = CRGB::Black;
-        FastLED.show();
-        FastLED.delay(10);
+        pixels.setBrightness(10);
+        pixels.setPixelColor(0, pixels.Color(0, 250, 0));
+        pixels.show();
+        delay(10);
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        pixels.show();
+        delay(10);
         lastGreenFlash = currentMillis;
     }
 
