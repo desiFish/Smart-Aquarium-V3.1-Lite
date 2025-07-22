@@ -245,7 +245,7 @@ void onOTAEnd(bool success)
     if (success)
     {
         Serial.println("OTA update finished successfully!");
-        pixels.setPixelColor(0, pixels.Color(0, 0, 200));
+        pixels.setPixelColor(0, pixels.Color(100, 100, 100));
     }
     else
     {
