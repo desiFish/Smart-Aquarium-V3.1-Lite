@@ -1126,8 +1126,11 @@ void loop()
     if (shouldReboot)
     {
         Serial.println("Graceful reboot: stopping server...");
+        pixels.setBrightness(100);
+        pixels.setPixelColor(0, pixels.Color(200, 150, 0)); // Deep yellow for reboot
+        pixels.show();
         server.end();
-        delay(200); // let response finish sending
+        delay(1000); // let response finish sending
         ESP.restart();
     }
 }
