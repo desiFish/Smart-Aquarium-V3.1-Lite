@@ -31,7 +31,7 @@ An advanced, ESP8266-based interactive aquarium control system with a modern web
 - [NTP Time Offset and Server Selection 🕒](#ntp-time-offset-and-server-selection-)
 - [Installation 🚀](#installation-)
 - [Backup and Restore 🗄️](#backup-and-restore-️)
-- [Important Troubleshooting ⚠️](#important-troubleshooting-)
+- [Important Troubleshooting ⚠️](#important-troubleshooting)
 - [Web Interface 🌐](#web-interface-)
 - [API Endpoints 🔌](#api-endpoints-)
 - [Contributing 🎯](#contributing-)
