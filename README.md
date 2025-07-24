@@ -359,7 +359,7 @@ This makes it easy to recover your setup after updates or hardware changes, ensu
 
 > 💡 **Tip**: After the initial wired upload, all future updates can be done wirelessly through ElegantOTA. This includes both code and filesystem updates. Just make sure to have backup.
 
-## Important Troubleshooting ⚠️
+## Important Troubleshooting
 
 > 🔴 **Critical**: If the server fails to start or the code doesn't work, the most common cause is incorrect static IP configuration. You have two options:
 > 1. **Remove Static IP**: Comment out or remove the static IP configuration code to use DHCP (recommended for beginners)
