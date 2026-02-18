@@ -6,3 +6,4 @@ build/esp8266.esp8266.d1_mini/Smart-AquariumV3_1Lite.ino.map
 *.bin
 *.map
 *.elf
+build/esp8266.esp8266.d1_mini/esp8266.esp8266.d1_mini.bin 

@@ -1326,21 +1326,23 @@ void loop()
  */
 bool rtcTimeUpdater()
 {
-    Serial.println("[DEBUG] ==== rtcTimeUpdater started ====");
+    String debugLog = "";
 
-    // Early RTC validation
     if (!rtc.begin())
     {
         Serial.println("[ERROR] RTC not found - cannot update time");
-        errorBuffer = "RTC not found. Please check hardware connection.";
+        errorBuffer = "[RTC_ERROR] RTC hardware not found. Check DS1307 connection.";
         return false;
     }
 
     // Early WiFi validation - check connection status first (WL_CONNECTED = 3)
-    if (WiFi.status() != WL_CONNECTED)
+    int wifiStatus = WiFi.status();
+    if (wifiStatus != WL_CONNECTED)
     {
-        Serial.printf("[ERROR] WiFi not connected (status: %d, WL_CONNECTED=3). Cannot sync NTP.\n", WiFi.status());
-        errorBuffer = "WiFi not connected. Cannot update time from NTP.";
+        char buffer[100];
+        sprintf(buffer, "[WIFI_ERROR] WiFi not connected. Status: %d (need 3). IP: %s", wifiStatus, WiFi.localIP().toString().c_str());
+        errorBuffer = buffer;
+        Serial.println(errorBuffer);
         return false;
     }
 
@@ -1348,52 +1350,93 @@ bool rtcTimeUpdater()
     if (ntpServer.length() == 0)
     {
         ntpServer = "pool.ntp.org";
-        Serial.println("[WARN] NTP server string was empty, set to default");
     }
-    Serial.printf("[DEBUG] NTP server: %s, timezone offset: %d seconds\n", ntpServer.c_str(), timezoneOffset);
 
-    // *** CRITICAL FIX: Initialize NTPClient before calling update() ***
-    Serial.println("[DEBUG] Initializing NTPClient...");
-    timeClient.begin();
-    delay(100); // Allow time for UDP socket initialization
+    // Array of fallback NTP servers to try
+    const char *ntpServers[] = {"pool.ntp.org", "time.nist.gov", "time.cloudflare.com"};
+    int numServers = 3;
+    bool updated = false;
+    String lastError = "";
 
-    // Attempt NTP update
-    Serial.println("[DEBUG] Calling timeClient.update()...");
-    bool updated = timeClient.update();
-    Serial.printf("[DEBUG] timeClient.update() returned: %s\n", updated ? "true" : "false");
+    for (int attempt = 0; attempt < numServers && !updated; attempt++)
+    {
+        String currentServer = (attempt == 0) ? ntpServer : String(ntpServers[attempt]);
+        char attemptLog[150];
+        sprintf(attemptLog, "[NTP_ATTEMPT_%d] Trying server: %s | TZ offset: %d sec", attempt + 1, currentServer.c_str(), timezoneOffset);
+        debugLog += attemptLog;
+        debugLog += " | ";
+        Serial.println(attemptLog);
+
+        // Recreate NTPClient with current server (CRITICAL for each attempt)
+        timeClient = NTPClient(ntpUDP, currentServer.c_str(), timezoneOffset);
+        timeClient.begin();
+        delay(300); // Extended delay for UDP + DNS
+
+        // Attempt NTP update with retries
+        for (int retry = 0; retry < 3 && !updated; retry++)
+        {
+            if (retry > 0)
+            {
+                delay(800);
+            }
+
+            updated = timeClient.update();
+
+            char retryLog[120];
+            if (updated)
+            {
+                sprintf(retryLog, "[SUCCESS] Update returned true on %s (retry %d)", currentServer.c_str(), retry);
+                Serial.println(retryLog);
+                debugLog += retryLog;
+                break;
+            }
+            else
+            {
+                sprintf(retryLog, "[RETRY_%d_FAIL] %s returned false", retry + 1, currentServer.c_str());
+                Serial.println(retryLog);
+                lastError = retryLog;
+            }
+        }
+    }
 
     if (!updated)
     {
-        Serial.println("[ERROR] NTP update() failed - no response from server");
-        errorBuffer = "NTP update failed. Check internet connection and NTP server.";
+        char finalError[180];
+        sprintf(finalError, "[NTP_FAILED] All %d servers failed. WiFi status: %d. Last attempt: %s",
+                numServers, WiFi.status(), lastError.c_str());
+        errorBuffer = finalError;
+        Serial.println(finalError);
         return false;
     }
 
-    Serial.printf("[DEBUG] timeClient.isTimeSet() = %s\n", timeClient.isTimeSet() ? "true" : "false");
+    // Check if time is actually set
     if (!timeClient.isTimeSet())
     {
-        Serial.println("[ERROR] NTP time not set after update");
-        errorBuffer = "NTP time not set. Server may be unreachable.";
+        errorBuffer = "[TIME_NOT_SET] NTP sync returned success but time not set in client.";
+        Serial.println(errorBuffer);
         return false;
     }
 
     // Validate epoch time
     time_t rawtime = timeClient.getEpochTime();
-    Serial.printf("[DEBUG] Epoch time from NTP: %ld\n", rawtime);
-    if (rawtime < 1000000000UL) // sanity check for valid epoch (after 2001)
+    if (rawtime < 1000000000UL)
     {
-        Serial.printf("[ERROR] Invalid epoch time from NTP: %ld (must be >= 1000000000)\n", rawtime);
-        errorBuffer = "Invalid epoch time from NTP. Time sync failed.";
+        char epochError[130];
+        sprintf(epochError, "[EPOCH_ERROR] Invalid NTP epoch: %ld (min: 1000000000). Year check failed.", rawtime);
+        errorBuffer = epochError;
+        Serial.println(epochError);
         return false;
     }
 
     // Update RTC with validated time
     DateTime dt(rawtime);
     rtc.adjust(dt);
-    Serial.printf("[DEBUG] RTC adjusted to: %04d-%02d-%02d %02d:%02d:%02d\n",
-                  dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
 
-    Serial.println("[DEBUG] ==== rtcTimeUpdater SUCCESS ====");
+    char successMsg[150];
+    sprintf(successMsg, "[SUCCESS] RTC synced to: %04d-%02d-%02d %02d:%02d:%02d",
+            dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
+    errorBuffer = successMsg;
+    Serial.println(successMsg);
     return true;
 }
 
