@@ -1,5 +1,5 @@
 /*
- * Smart-Aquarium-V3.1 - ESP8266-based Interactive Networked Aquarium
+ * Smart-Aquarium-V3.1Lite - ESP8266-based Interactive Networked Aquarium
  * Copyright (C) 2025 desiFish (https://github.com/desiFish)
  *
  * This program is free software under GPL v3: you can:
@@ -13,7 +13,7 @@
  * - Share modifications under GPL v3
  *
  * Full license at: https://www.gnu.org/licenses/gpl-3.0.txt
- * Project repo: https://github.com/desiFish/Smart-Aquarium-V3.1
+ * Project repo: https://github.com/desiFish/Smart-Aquarium-V3.1-Lite
  */
 
 #include <ESP8266WiFi.h>
@@ -21,6 +21,7 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <ArduinoJson.hpp>
 #include <Wire.h>
 #include <ElegantOTA.h>
 
@@ -32,7 +33,7 @@
 #include <Adafruit_NeoPixel.h>
 
 // Software version
-#define SWVersion "v1.1.2"
+#define SWVersion "v1.1.3"
 
 // Number of leds
 #define NUMPIXELS 1
@@ -63,14 +64,14 @@ NTPClient timeClient(ntpUDP, ntpServer.c_str(), timezoneOffset); // check Readme
  */
 void saveNtpConfigToFS()
 {
-    JsonDocument doc;
+    ArduinoJson::JsonDocument doc;
     doc["ntpServer"] = ntpServer;
     doc["timezoneOffset"] = timezoneOffset;
     doc["timezoneString"] = timezoneString;
     File f = LittleFS.open("/ntp.json", "w");
     if (f)
     {
-        serializeJson(doc, f);
+        ArduinoJson::serializeJson(doc, f);
         f.close();
     }
 }
@@ -99,8 +100,8 @@ void loadNtpConfigFromFS()
         return;
     }
     Serial.println("[DEBUG] /ntp.json opened successfully");
-    JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, f);
+    ArduinoJson::JsonDocument doc;
+    ArduinoJson::DeserializationError err = ArduinoJson::deserializeJson(doc, f);
     f.close();
     if (!err)
     {
@@ -136,7 +137,7 @@ void saveWifiConfigToFS(const String &ssidVal, const String &passwordVal,
                         const String &dns1, const String &dns2, bool useStaticIp)
 {
     Serial.println("[DEBUG] saveWifiConfigToFS called");
-    JsonDocument doc;
+    ArduinoJson::JsonDocument doc;
     doc["ssid"] = ssidVal;
     doc["password"] = passwordVal;
     if (ip.length())
@@ -154,7 +155,7 @@ void saveWifiConfigToFS(const String &ssidVal, const String &passwordVal,
     if (f)
     {
         Serial.println("[DEBUG] /wifi.json opened for writing");
-        serializeJson(doc, f);
+        ArduinoJson::serializeJson(doc, f);
         f.close();
         Serial.println("[DEBUG] /wifi.json written and closed");
     }
@@ -196,8 +197,8 @@ void loadWifiConfigFromFS(String &ssidVal, String &passwordVal,
         return;
     }
     Serial.println("[DEBUG] /wifi.json opened successfully");
-    JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, f);
+    ArduinoJson::JsonDocument doc;
+    ArduinoJson::DeserializationError err = ArduinoJson::deserializeJson(doc, f);
     f.close();
     if (!err)
     {
@@ -431,8 +432,8 @@ private:
             String jsonStr = configFile.readString();
             configFile.close();
 
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, jsonStr);
+            ArduinoJson::JsonDocument doc;
+            ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, jsonStr);
 
             if (!error)
             {
@@ -514,7 +515,7 @@ private:
             LittleFS.mkdir("/config");
         }
 
-        JsonDocument doc;
+        ArduinoJson::JsonDocument doc;
         doc["isOn"] = isOn;
         doc["isDisabled"] = isDisabled;
         doc["onTime"] = onTime;
@@ -534,7 +535,7 @@ private:
         File configFile = LittleFS.open("/config/relay" + String(relayNum) + ".json", "w");
         if (configFile)
         {
-            serializeJson(doc, configFile);
+            ArduinoJson::serializeJson(doc, configFile);
             configFile.close();
         }
     }
@@ -808,6 +809,10 @@ unsigned long previousMillis = 0;
 const long interval = 1000;
 bool updateTime = false;
 
+// --- Time update tracking variables ---
+bool timeNeedsUpdate = true;
+byte lastCheckedDay = 0;
+
 // Forward declarations
 void setupServer();
 bool rtcTimeUpdater();
@@ -853,6 +858,68 @@ void writeRtcUpdateFlag(bool flag)
 }
 
 /**
+ * @brief Saves time update tracking (timeNeedsUpdate flag and lastCheckedDay) to LittleFS.
+ *
+ * Serializes time update tracking data to /time_tracking.json in LittleFS.
+ * Used to persist the 15-day periodic update tracking across reboots.
+ */
+void saveTimeUpdateTrackingToFS()
+{
+    ArduinoJson::JsonDocument doc;
+    doc["timeNeedsUpdate"] = timeNeedsUpdate;
+    doc["lastCheckedDay"] = lastCheckedDay;
+    File f = LittleFS.open("/time_tracking.json", "w");
+    if (f)
+    {
+        ArduinoJson::serializeJson(doc, f);
+        f.close();
+        Serial.println("[DEBUG] Time tracking saved to FS");
+    }
+    else
+    {
+        Serial.println("[DEBUG] Failed to open /time_tracking.json for writing");
+    }
+}
+
+/**
+ * @brief Loads time update tracking (timeNeedsUpdate flag and lastCheckedDay) from LittleFS.
+ *
+ * Reads and deserializes /time_tracking.json from LittleFS.
+ * Uses default values (timeNeedsUpdate=true, lastCheckedDay=0) if the file is missing or corrupt.
+ */
+void loadTimeUpdateTrackingFromFS()
+{
+    Serial.println("[DEBUG] loadTimeUpdateTrackingFromFS called");
+    if (!LittleFS.exists("/time_tracking.json"))
+    {
+        Serial.println("[DEBUG] /time_tracking.json not found, using defaults");
+        timeNeedsUpdate = true;
+        lastCheckedDay = 0;
+        return;
+    }
+    File f = LittleFS.open("/time_tracking.json", "r");
+    if (!f)
+    {
+        Serial.println("[DEBUG] Failed to open /time_tracking.json");
+        return;
+    }
+    ArduinoJson::JsonDocument doc;
+    ArduinoJson::DeserializationError err = ArduinoJson::deserializeJson(doc, f);
+    f.close();
+    if (!err)
+    {
+        Serial.println("[DEBUG] Time tracking loaded from JSON");
+        timeNeedsUpdate = doc["timeNeedsUpdate"] | true;
+        lastCheckedDay = doc["lastCheckedDay"] | 0;
+    }
+    else
+    {
+        Serial.print("[DEBUG] Time tracking JSON error: ");
+        Serial.println(err.c_str());
+    }
+}
+
+/**
  * @brief Reads the RTC update flag from the filesystem.
  *
  * This function checks for the existence of the RTC update flag file ("/r") in LittleFS.
@@ -891,7 +958,7 @@ void setup()
     pixels.setPixelColor(0, pixels.Color(0, 150, 0));
     pixels.show();
 
-    Serial.println("Smart Aquarium V3.1 - ESP8266 Setup");
+    Serial.println("Smart Aquarium V3.1Lite - ESP8266 Setup");
     Serial.begin(115200);
 
     if (!LittleFS.begin())
@@ -1045,6 +1112,53 @@ void setup()
         Serial.println("Couldn't find RTC");
         errorBuffer = "RTC not found. Please check hardware connection.";
         errorCode = 3; // RTC error
+    }
+    else
+    {
+        // Load time update tracking from filesystem
+        loadTimeUpdateTrackingFromFS();
+
+        // Get current RTC time
+        DateTime now = rtc.now();
+
+        // Check if RTC is not initialized (year = 1970) or RTC is not running
+        if (now.year() == 1970 || !rtc.isrunning())
+        {
+            Serial.println("[DEBUG] RTC not initialized or not running, marking for update");
+            timeNeedsUpdate = true;
+        }
+
+        // Get current day
+        byte currentDay = now.day();
+
+        // Calculate days passed since last check
+        byte daysPassed = (currentDay - lastCheckedDay + 31) % 31;
+
+        // Check if update is needed: timeNeedsUpdate flag OR 15+ days passed
+        if (timeNeedsUpdate || daysPassed >= 15)
+        {
+            Serial.println("[INFO] Time update needed - attempting NTP sync");
+            if (rtcTimeUpdater())
+            {
+                Serial.println("[INFO] Time updated successfully from NTP");
+                errorBuffer = "[INFO] RTC time successfully synchronized from NTP.";
+                timeNeedsUpdate = false;
+            }
+            else
+            {
+                Serial.println("[ERROR] Time update failed");
+                errorBuffer = "[ERROR] RTC time synchronization failed. Scheduled retry in 15 days.";
+                // Keep timeNeedsUpdate flag set to retry later
+            }
+            // Update lastCheckedDay regardless of success (to avoid constant attempts)
+            lastCheckedDay = currentDay;
+            saveTimeUpdateTrackingToFS();
+        }
+        else
+        {
+            Serial.println("[INFO] Time already updated, no action needed");
+            errorBuffer = "[INFO] RTC time check: already synchronized, next check in 15 days.";
+        }
     }
 
     // Initialize relay objects
@@ -1212,56 +1326,75 @@ void loop()
  */
 bool rtcTimeUpdater()
 {
+    Serial.println("[DEBUG] ==== rtcTimeUpdater started ====");
+
+    // Early RTC validation
     if (!rtc.begin())
     {
-        Serial.println("[DEBUG] RTC not found in rtcTimeUpdater");
+        Serial.println("[ERROR] RTC not found - cannot update time");
         errorBuffer = "RTC not found. Please check hardware connection.";
+        return false;
     }
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        if (ntpServer.length() == 0)
-        {
-            ntpServer = "pool.ntp.org";
-            Serial.println("[WARN] NTP server string was empty, set to default");
-        }
-        Serial.print("[DEBUG] NTP server: ");
-        Serial.println(ntpServer);
 
-        if (!timeClient.isTimeSet())
-        {
-            Serial.println("[DEBUG] NTP time not set, attempting update");
-        }
-        bool updated = false;
-
-        if (WiFi.status() == WL_CONNECTED && ntpServer.length() > 0)
-        {
-            updated = timeClient.update();
-        }
-        if (updated && timeClient.isTimeSet())
-        {
-            time_t rawtime = timeClient.getEpochTime();
-            if (rawtime < 1000000000UL) // sanity check for valid epoch (after 2001)
-            {
-                Serial.println("[ERROR] Invalid epoch time from NTP");
-                errorBuffer = "Invalid epoch time from NTP. Time sync failed.";
-                return false;
-            }
-            DateTime dt(rawtime);
-            rtc.adjust(dt);
-            return true;
-        }
-        else
-        {
-            Serial.println("[ERROR] NTP update failed or time not set");
-            errorBuffer = "NTP update failed or time not set. Check internet connection and NTP server.";
-        }
-    }
-    else
+    // Early WiFi validation - check connection status first (WL_CONNECTED = 3)
+    if (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("[ERROR] WiFi not connected in rtcTimeUpdater");
+        Serial.printf("[ERROR] WiFi not connected (status: %d, WL_CONNECTED=3). Cannot sync NTP.\n", WiFi.status());
         errorBuffer = "WiFi not connected. Cannot update time from NTP.";
+        return false;
     }
-    return false;
+
+    // Set default NTP server if empty
+    if (ntpServer.length() == 0)
+    {
+        ntpServer = "pool.ntp.org";
+        Serial.println("[WARN] NTP server string was empty, set to default");
+    }
+    Serial.printf("[DEBUG] NTP server: %s, timezone offset: %d seconds\n", ntpServer.c_str(), timezoneOffset);
+
+    // *** CRITICAL FIX: Initialize NTPClient before calling update() ***
+    Serial.println("[DEBUG] Initializing NTPClient...");
+    timeClient.begin();
+    delay(100); // Allow time for UDP socket initialization
+
+    // Attempt NTP update
+    Serial.println("[DEBUG] Calling timeClient.update()...");
+    bool updated = timeClient.update();
+    Serial.printf("[DEBUG] timeClient.update() returned: %s\n", updated ? "true" : "false");
+
+    if (!updated)
+    {
+        Serial.println("[ERROR] NTP update() failed - no response from server");
+        errorBuffer = "NTP update failed. Check internet connection and NTP server.";
+        return false;
+    }
+
+    Serial.printf("[DEBUG] timeClient.isTimeSet() = %s\n", timeClient.isTimeSet() ? "true" : "false");
+    if (!timeClient.isTimeSet())
+    {
+        Serial.println("[ERROR] NTP time not set after update");
+        errorBuffer = "NTP time not set. Server may be unreachable.";
+        return false;
+    }
+
+    // Validate epoch time
+    time_t rawtime = timeClient.getEpochTime();
+    Serial.printf("[DEBUG] Epoch time from NTP: %ld\n", rawtime);
+    if (rawtime < 1000000000UL) // sanity check for valid epoch (after 2001)
+    {
+        Serial.printf("[ERROR] Invalid epoch time from NTP: %ld (must be >= 1000000000)\n", rawtime);
+        errorBuffer = "Invalid epoch time from NTP. Time sync failed.";
+        return false;
+    }
+
+    // Update RTC with validated time
+    DateTime dt(rawtime);
+    rtc.adjust(dt);
+    Serial.printf("[DEBUG] RTC adjusted to: %04d-%02d-%02d %02d:%02d:%02d\n",
+                  dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
+
+    Serial.println("[DEBUG] ==== rtcTimeUpdater SUCCESS ====");
+    return true;
 }
 
 /**
@@ -1285,7 +1418,7 @@ void setupServer()
     // WiFi info endpoint (GET)
     server.on("/api/wifi", HTTP_GET, [](AsyncWebServerRequest *request)
               { Serial.println("[DEBUG] /api/wifi (GET) endpoint called");
-        JsonDocument doc;
+        ArduinoJson::JsonDocument doc;
         doc["ssid"] = wifiSsid;
         doc["password"] = wifiPassword;
 
@@ -1305,7 +1438,7 @@ void setupServer()
         }
         doc["useStaticIp"] = wifiUseStaticIp;
         String response;
-        serializeJson(doc, response);
+        ArduinoJson::serializeJson(doc, response);
         request->send(200, "application/json", response); });
 
     // WiFi update endpoint (POST)
@@ -1347,11 +1480,11 @@ void setupServer()
         saveWifiConfigToFS(ssid, password, ipStr, gatewayStr, subnetStr, dns1Str, dns2Str, useStaticIp);
 
         // Send JSON success
-        JsonDocument resp;
+        ArduinoJson::JsonDocument resp;
         resp["success"] = true;
         resp["info"] = "WiFi settings saved. Device will reboot shortly.";
         String response;
-        serializeJson(resp, response);
+        ArduinoJson::serializeJson(resp, response);
         Serial.println("WiFi settings saved, device will reboot shortly.");
         request->send(200, "application/json", response);
         return; });
@@ -1383,8 +1516,8 @@ void setupServer()
               {
             Serial.println("[DEBUG] /api/ntp (POST) endpoint called");
             String json = String((char*)data);
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, json);
+            ArduinoJson::JsonDocument doc;
+            ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, json);
             if (!error && doc["ntpServer"] && doc["offset"].is<int>()) {
                 String newNtpServer = doc["ntpServer"].as<String>();
                 int newOffset = doc["offset"].as<int>();
@@ -1405,12 +1538,12 @@ void setupServer()
     // NTP/Timezone GET endpoint for config download
     server.on("/api/ntp", HTTP_GET, [](AsyncWebServerRequest *request)
               { Serial.println("[DEBUG] /api/ntp (GET) endpoint called");
-        JsonDocument doc;
+        ArduinoJson::JsonDocument doc;
         doc["ntpServer"] = ntpServer;
         doc["timezoneOffset"] = timezoneOffset;
         doc["timezoneString"] = timezoneString;
         String response;
-        serializeJson(doc, response);
+        ArduinoJson::serializeJson(doc, response);
         request->send(200, "application/json", response); });
 
     // Set up endpoints for each relay
@@ -1423,10 +1556,10 @@ void setupServer()
     server.on("/api/error", HTTP_GET, [](AsyncWebServerRequest *request)
               {
                   Serial.println("[API] /api/error endpoint called");
-                  JsonDocument doc;
+                  ArduinoJson::JsonDocument doc;
                   doc["error"] = errorBuffer;
                   String response;
-                  serializeJson(doc, response);
+                  ArduinoJson::serializeJson(doc, response);
                   request->send(200, "application/json", response);
                   errorBuffer = ""; });
 
@@ -1451,12 +1584,12 @@ void setupServer()
         const char* daysOfWeek[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
         const char* dow = daysOfWeek[now.dayOfTheWeek() % 7];
 
-        JsonDocument doc;
+        ArduinoJson::JsonDocument doc;
         doc["time"] = timeStr;
         doc["date"] = dateStr;
         doc["dow"] = dow;
         String response;
-        serializeJson(doc, response);
+        ArduinoJson::serializeJson(doc, response);
         request->send(200, "application/json", response); });
 }
 
@@ -1475,23 +1608,23 @@ void setupRelayEndpoints(byte relayIndex)
     // Status endpoint (toggle)
     server.on((baseEndpoint + "/status").c_str(), HTTP_GET, [idx, baseEndpointStr = baseEndpoint](AsyncWebServerRequest *request)
               { Serial.printf("[API] %s/status GET called\n", baseEndpointStr.c_str());
-                JsonDocument doc;
+                ArduinoJson::JsonDocument doc;
                 doc["success"] = true;
                 doc["state"] = relays[idx]->getState() ? "ON" : "OFF";
                 String response;
-                serializeJson(doc, response);
+                ArduinoJson::serializeJson(doc, response);
                 request->send(200, "application/json", response); });
 
     // System state endpoints
     server.on((baseEndpoint + "/system/state").c_str(), HTTP_GET, [idx, baseEndpointStr = baseEndpoint](AsyncWebServerRequest *request)
               { Serial.printf("[API] %s/system/state GET called\n", baseEndpointStr.c_str());
-                  JsonDocument doc;
+                  ArduinoJson::JsonDocument doc;
                   doc["success"] = true;
                   doc["enabled"] = relays[idx]->isEnabled();
                   doc["disabled"] = !relays[idx]->isEnabled();
                   doc["state"] = relays[idx]->getState() ? "ON" : "OFF";
                   String response;
-                  serializeJson(doc, response);
+                  ArduinoJson::serializeJson(doc, response);
                   request->send(200, "application/json", response); });
 
     server.on((baseEndpoint + "/system/state").c_str(), HTTP_POST,
@@ -1501,9 +1634,9 @@ void setupRelayEndpoints(byte relayIndex)
               {
                   Serial.printf("[API] %s/system/state POST called\n", baseEndpointStr.c_str());
                   String json = String((char *)data);
-                  JsonDocument inputDoc;
-                  JsonDocument responseDoc;
-                  DeserializationError error = deserializeJson(inputDoc, json);
+                  ArduinoJson::JsonDocument inputDoc;
+                  ArduinoJson::JsonDocument responseDoc;
+                  ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(inputDoc, json);
 
                   if (!error && (inputDoc["enabled"].is<bool>() || inputDoc["disabled"].is<bool>()))
                   {
@@ -1531,7 +1664,7 @@ void setupRelayEndpoints(byte relayIndex)
                   }
 
                   String responseStr;
-                  serializeJson(responseDoc, responseStr);
+                  ArduinoJson::serializeJson(responseDoc, responseStr);
                   request->send(200, "application/json", responseStr);
               });
 
@@ -1547,8 +1680,8 @@ void setupRelayEndpoints(byte relayIndex)
               {
                   Serial.printf("[API] %s/name POST called\n", baseEndpointStr.c_str());
                   String json = String((char *)data);
-                  JsonDocument doc;
-                  DeserializationError error = deserializeJson(doc, json);
+                  ArduinoJson::JsonDocument doc;
+                  ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, json);
 
                   if (!error && doc["name"].is<const char *>())
                   {
@@ -1565,12 +1698,12 @@ void setupRelayEndpoints(byte relayIndex)
     // Toggle endpoint
     server.on((baseEndpoint + "/toggle").c_str(), HTTP_POST, [idx, baseEndpointStr = baseEndpoint](AsyncWebServerRequest *request)
               { Serial.printf("[API] %s/toggle POST called\n", baseEndpointStr.c_str());
-                JsonDocument doc;
+                ArduinoJson::JsonDocument doc;
                 relays[idx]->toggle();
                 doc["success"] = true;
                 doc["state"] = relays[idx]->getState() ? "ON" : "OFF";
                 String response;
-                serializeJson(doc, response);
+                ArduinoJson::serializeJson(doc, response);
                 request->send(200, "application/json", response); });
 
     // Mode endpoint
@@ -1585,8 +1718,8 @@ void setupRelayEndpoints(byte relayIndex)
               {
                   Serial.printf("[API] %s/mode POST called\n", baseEndpointStr.c_str());
                   String json = String((char *)data);
-                  JsonDocument doc;
-                  DeserializationError error = deserializeJson(doc, json);
+                  ArduinoJson::JsonDocument doc;
+                  ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, json);
 
                   if (!error && doc["mode"].is<const char *>())
                   {
@@ -1603,12 +1736,12 @@ void setupRelayEndpoints(byte relayIndex)
     // Schedule endpoint
     server.on((baseEndpoint + "/schedule").c_str(), HTTP_GET, [idx, baseEndpointStr = baseEndpoint](AsyncWebServerRequest *request)
               { Serial.printf("[API] %s/schedule GET called\n", baseEndpointStr.c_str());
-        JsonDocument doc;
+        ArduinoJson::JsonDocument doc;
         doc["onTime"] = relays[idx]->getOnTime();
         doc["offTime"] = relays[idx]->getOffTime();
         
         String response;
-        serializeJson(doc, response);
+        ArduinoJson::serializeJson(doc, response);
         request->send(200, "application/json", response); });
 
     server.on((baseEndpoint + "/schedule").c_str(), HTTP_POST,
@@ -1618,9 +1751,9 @@ void setupRelayEndpoints(byte relayIndex)
               {
                   Serial.printf("[API] %s/schedule POST called\n", baseEndpointStr.c_str());
                   String json = String((char *)data);
-                  JsonDocument doc;
-                  JsonDocument response;
-                  DeserializationError error = deserializeJson(doc, json);
+                  ArduinoJson::JsonDocument doc;
+                  ArduinoJson::JsonDocument response;
+                  ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, json);
 
                   if (!error && doc["onTime"].is<const char *>() && doc["offTime"].is<const char *>())
                   {
@@ -1644,7 +1777,7 @@ void setupRelayEndpoints(byte relayIndex)
                   }
 
                   String responseStr;
-                  serializeJson(response, responseStr);
+                  ArduinoJson::serializeJson(response, responseStr);
                   request->send(200, "application/json", responseStr);
               });
 
@@ -1656,9 +1789,9 @@ void setupRelayEndpoints(byte relayIndex)
               {
                   Serial.printf("[API] %s/timer POST called\n", baseEndpointStr.c_str());
                   String json = String((char *)data);
-                  JsonDocument doc;
-                  JsonDocument response;
-                  DeserializationError error = deserializeJson(doc, json);
+                  ArduinoJson::JsonDocument doc;
+                  ArduinoJson::JsonDocument response;
+                  ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, json);
 
                   if (!error && doc["duration"].is<int>() && doc["start"].is<bool>())
                   {
@@ -1679,20 +1812,20 @@ void setupRelayEndpoints(byte relayIndex)
                   }
 
                   String responseStr;
-                  serializeJson(response, responseStr);
+                  ArduinoJson::serializeJson(response, responseStr);
                   request->send(200, "application/json", responseStr);
               });
 
     server.on((baseEndpoint + "/timer/state").c_str(), HTTP_GET, [idx, baseEndpointStr = baseEndpoint](AsyncWebServerRequest *request)
               { Serial.printf("[API] %s/timer/state GET called\n", baseEndpointStr.c_str());
-                  JsonDocument doc;
+                  ArduinoJson::JsonDocument doc;
                   doc["success"] = true;
                   doc["active"] = relays[idx]->isTimerActive();
                   doc["duration"] = relays[idx]->getTimerDuration();
                   doc["remaining"] = relays[idx]->getRemainingTime();
                   
                   String response;
-                  serializeJson(doc, response);
+                  ArduinoJson::serializeJson(doc, response);
                   request->send(200, "application/json", response); });
 
     // Toggle mode endpoints
@@ -1703,9 +1836,9 @@ void setupRelayEndpoints(byte relayIndex)
               {
                   Serial.printf("[API] %s/toggle-mode POST called\n", baseEndpointStr.c_str());
                   String json = String((char *)data);
-                  JsonDocument doc;
-                  JsonDocument response;
-                  DeserializationError error = deserializeJson(doc, json);
+                  ArduinoJson::JsonDocument doc;
+                  ArduinoJson::JsonDocument response;
+                  ArduinoJson::DeserializationError error = ArduinoJson::deserializeJson(doc, json);
 
                   if (!error && doc["onMinutes"].is<int>() && doc["offMinutes"].is<int>() && doc["start"].is<bool>())
                   {
@@ -1729,13 +1862,13 @@ void setupRelayEndpoints(byte relayIndex)
                   }
 
                   String responseStr;
-                  serializeJson(response, responseStr);
+                  ArduinoJson::serializeJson(response, responseStr);
                   request->send(200, "application/json", responseStr);
               });
 
     server.on((baseEndpoint + "/toggle-mode/state").c_str(), HTTP_GET, [idx, baseEndpointStr = baseEndpoint](AsyncWebServerRequest *request)
               { Serial.printf("[API] %s/toggle-mode/state GET called\n", baseEndpointStr.c_str());
-                  JsonDocument doc;
+                  ArduinoJson::JsonDocument doc;
                   doc["success"] = true;
                   doc["active"] = relays[idx]->isToggleActive();
                   doc["onMinutes"] = relays[idx]->getToggleOnMinutes();
@@ -1744,12 +1877,12 @@ void setupRelayEndpoints(byte relayIndex)
                   doc["state"] = relays[idx]->getState() ? "ON" : "OFF";
                   
                   String response;
-                  serializeJson(doc, response);
+                  ArduinoJson::serializeJson(doc, response);
                   request->send(200, "application/json", response); });
     // System details endpoint
     server.on("/api/system/details", HTTP_GET, [](AsyncWebServerRequest *request)
               { Serial.printf("[API] /api/system/details GET called\n");
-        JsonDocument doc;
+        ArduinoJson::JsonDocument doc;
         doc["chipId"] = ESP.getChipId();
         doc["flashChipId"] = ESP.getFlashChipId();
         doc["flashChipSize"] = ESP.getFlashChipSize();
@@ -1761,6 +1894,6 @@ void setupRelayEndpoints(byte relayIndex)
         doc["macAddress"] = WiFi.macAddress();
         doc["wifiRssi"] = WiFi.RSSI();
         String response;
-        serializeJson(doc, response);
+        ArduinoJson::serializeJson(doc, response);
         request->send(200, "application/json", response); });
 }
