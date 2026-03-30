@@ -198,6 +198,36 @@ This system is highly scalable and can be easily modified to control more or few
 - Stable WiFi Connection (2.4GHz network with internet access for NTP)
   > ⚠️ **Important**: RTC module is required for timekeeping. DS3231 is recommended for higher accuracy and reliability. Internet connectivity is only needed for time synchronization via NTP (manual update).
 
+## Device Access & Network Resolution 🌐
+
+After WiFi configuration, your Smart Aquarium V3.1 Lite can be accessed using **hostname-based addressing** instead of relying on IP addresses:
+
+### Primary Access Method (Recommended)
+- **Hostname:** `http://aquarium_mini.local`
+- **Platform Support:** ✅ Windows, ✅ macOS, ✅ Linux
+- **How it works:** The device uses mDNS (multicast DNS) to broadcast its hostname on the network
+- **Advantage:** No need to find or remember the device's IP address—it's always accessible at the same address
+
+### Alternative Access Methods
+- **Direct IP Address:** `http://192.168.x.x` (requires knowing the current IP)
+- **WiFi Setup / AP Mode:** `http://192.168.4.1` (available when device is in AP/setup mode)
+
+### Mobile Device Limitations ⚠️
+- **iOS & Android:** Native mDNS support is limited. Hostname access may not work directly.
+- **Workaround for Mobile:**
+  1. Access the settings page from a PC/Mac/Linux machine at `http://aquarium_mini.local`
+  2. Go to the API endpoint `/api/wifi` to retrieve the current IP address
+  3. Use the IP address on your mobile device instead
+  4. Alternatively, configure a **static IP** in the Settings page for permanent, unchanging access
+
+### Static IP Configuration
+For permanent, unchanging device address:
+1. Connect to `192.168.4.1` via the `Aquarium-Setup` WiFi network
+2. Go to Settings > WiFi Configuration
+3. Check "Use Static IP" and enter your desired IP, gateway, and subnet
+4. Save and reboot
+5. The device will be accessible at your chosen static IP from any device indefinitely
+
 > 💡 **Compatibility**: This project is developed and tested on the ESP8266 12-E NodeMCU Kit.  
 > It has been tested on **NodeMCU 1.0** and **LOLIN (Wemos) D1 R2 Mini** boards.  
 > It works with other ESP8266-based boards with minimal changes. Ensure your board has enough GPIO pins for relays and I2C (SDA/SCL) for RTC.
@@ -221,6 +251,7 @@ The above schematic shows the connections between the ESP8266 and relay module. 
 - [ESPAsyncTCP](https://github.com/ESP32Async/ESPAsyncTCP) - **Required Version**
 - [ESPAsyncWebServer](https://github.com/ESP32Async/ESPAsyncWebServer) - **Required Version**
 - LittleFS (Built-in with ESP8266 Arduino Core)
+- [ESP8266mDNS](https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266mDNS) (Built-in with ESP8266 Arduino Core) - Enables hostname-based device access
 - ArduinoJson
 - ElegantOTA
 - NTPClient
@@ -294,6 +325,11 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
    - Upload HTML files using the guide above
    - Upload the code from Arduino IDE
    - After successful code upload, the device will create a WiFi access point (hotspot) named `Aquarium-Setup` with password `12345678`. Connect to this network using any device (preferably a PC). Ignore any alert about "connected with no internet." Open a browser and go to `192.168.4.1`. Navigate to the Settings page, enter your WiFi credentials, and click on "Save WiFi." The device will then reboot and attempt to connect to your configured network.
+   
+   After successful WiFi configuration and reboot, your device can be accessed at:
+   - **Recommended (Windows/Mac/Linux):** `http://aquarium_mini.local`
+   - **Alternative (All platforms):** Find the device's assigned IP address from your router and use `http://[device-ip]`
+   - **Mobile devices:** See "Device Access & Network Resolution" section above for hostname limitations and workarounds
 
    **Dynamic vs Static IP:**
    - By default, the device uses **Dynamic IP (DHCP)**. This means your WiFi router will automatically assign an available IP address to the device. This is recommended for most users and ensures easy connectivity.
@@ -304,6 +340,7 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600);
 
    **RTC Synchronization and Browser Notification:**
    - The browser will notify you if the RTC (Real Time Clock) is not synchronized by comparing the RTC time with your current device (PC/Smartphone) time.
+   - Access the Settings page at `http://aquarium_mini.local` (or your device's IP address if hostname is not available)
    - On the Settings page, the RTC time is displayed just under the main buttons. If the RTC is not connected or there is an error, it will show `RTC_ERROR` instead of the time. This is a reliable place to check RTC status.
    - If you notice the RTC time is incorrect, scroll to the bottom of the Settings page and select the nearest NTP pool server to you (if unsure, use `pool.ntp.org`) and set your timezone. Save the settings, it will automatically update RTC from the NTP server.
    - The browser updates the RTC time shown on the Settings page every 30 seconds, so the displayed time will always be within ±1 second of the actual RTC time.
