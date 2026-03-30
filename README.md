@@ -466,6 +466,7 @@ The system exposes several RESTful API endpoints:
 - `/api/wifi` (GET/POST) - Get or update WiFi and network settings
 - `/api/ntp` (GET/POST) - Get or update NTP server and timezone settings
 - `/api/reboot` (POST) - Reboot the device
+- `/api/reset` (POST) - Reset device to factory defaults (clears all config, reboots)
 - `/api/time/update` (POST) - Trigger RTC time update from NTP
 - `/api/error` (GET) - Get the latest error message (clears after reading)
 - `/api/system/details` (GET) - Get ESP8266 system and hardware details
